@@ -200,15 +200,16 @@ interface NodeViewProps {
 }
 
 function NodeView({ nodeId, onAnswer }: NodeViewProps) {
-  const node = NODES[nodeId];
+  const node: NodeDefinition | undefined = NODES[nodeId];
   if (!node) {
     return null;
   }
 
   if (node.type === 'q') {
+    const questionNode = node as QuestionNode;
     return (
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className={`border-2 shadow-sm ${node.color ?? ''}`}>
+        <Card className={`border-2 shadow-sm ${questionNode.color ?? ''}`}>
           <CardContent className="space-y-6 p-6">
             <h2 className="text-xl font-semibold">{node.text}</h2>
             <div className="flex gap-3">
