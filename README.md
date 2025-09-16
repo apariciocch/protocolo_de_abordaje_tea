@@ -2,6 +2,10 @@
 
 Aplicación web interactiva que reproduce el protocolo de abordaje de los trastornos de aprendizaje mediante un flujo de preguntas y decisiones. Está construida con React, Vite y Tailwind CSS.
 
+## Versión sin frameworks
+
+Para una versión completamente autónoma en HTML + JavaScript + CSS (sin dependencias externas), abre el archivo [`standalone/flujo-diagnostico-sin-frameworks.html`](standalone/flujo-diagnostico-sin-frameworks.html) directamente en el navegador. Replica la misma lógica del flujo sin necesidad de Node.js ni del bundler.
+
 ## Requisitos previos
 
 - Node.js 18 o superior
