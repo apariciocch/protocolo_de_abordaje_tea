@@ -1,12 +1,209 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Protocolo de abordaje TEA</title>
-  </head>
-  <body class="min-h-screen bg-slate-50">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flujo diagnóstico de dificultades de aprendizaje</title>
+  <style>
+    :root{
+      --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+      --border:#e2e8f0; --primary:#0ea5e9; --danger:#ef4444; --success:#10b981; --amber:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:var(--bg); color:var(--text)}
+    .container{max-width:860px;margin:40px auto;padding:0 16px}
+    .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+    h1{font-size:clamp(20px,2.6vw,28px);margin:0}
+    .controls{display:flex;gap:8px}
+    button{appearance:none;border:1px solid var(--border);background:#fff;color:var(--text);
+      padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer;transition:.2s}
+    button:hover{transform:translateY(-1px)}
+    button.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+    button.ghost{background:#fff}
+    button[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+
+    .card{background:var(--card);border:2px solid var(--border);border-radius:16px;box-shadow:0 6px 20px rgba(2,8,23,.06);
+      padding:22px;margin-top:14px}
+    .card.header{display:flex;align-items:center;gap:10px}
+    .q{font-size:20px;font-weight:700;margin:0 0 16px}
+    .answers{display:flex;gap:10px}
+    .answers .yes{background:var(--success);border-color:var(--success);color:#fff}
+    .answers .no{background:#fff;color:var(--text)}
+
+    .end{display:flex;align-items:center;gap:10px}
+    .end.success{border-color:#d1fae5;background:#ecfdf5}
+    .end.warn{border-color:#fde68a;background:#fffbeb}
+    .end.danger{border-color:#fecaca;background:#fef2f2}
+    .end.info{border-color:#bae6fd;background:#eff6ff}
+
+    .crumbs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+    .crumb{display:inline-flex;align-items:center;gap:8px}
+    .pill{padding:6px 10px;border:1px solid var(--border);background:#fff;border-radius:999px;font-size:12px}
+    .arrow{opacity:.6}
+    .resp-yes{color:var(--success);font-weight:700}
+    .resp-no{color:var(--danger);font-weight:700}
+
+    .muted{color:var(--muted);font-size:14px;margin-top:8px}
+    .fade-in{animation:fade .25s ease-out}
+    @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    /* Responsive */
+    @media (max-width:520px){
+      .answers{flex-direction:column}
+      .controls{flex-wrap:wrap}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Flujo diagnóstico de dificultades de aprendizaje</h1>
+      <div class="controls">
+        <button id="backBtn" class="ghost">Retroceder</button>
+        <button id="restartBtn" class="primary">Reiniciar</button>
+      </div>
+    </div>
+
+    <div id="breadcrumbs" class="crumbs" aria-live="polite"></div>
+
+    <section id="view" class="fade-in"></section>
+
+    <p class="muted">Esta herramienta guía paso a paso replicando la lógica del diagrama original. Responde <strong>Sí / No</strong> para avanzar.</p>
+  </div>
+
+  <script>
+    // --- Datos del flujo (nodos) ---
+    const NODES = {
+      A: { type:'q', text:'¿Existe déficit sensorial, afectación neurológica?', yes:'B', no:'C' },
+      B: { type:'q', text:'¿Explican los trastornos de aprendizaje?', yes:'Z_NO_CONT', no:'C' },
+      C: { type:'q', text:'¿Es retraso mental?', yes:'D', no:'E' },
+      D: { type:'q', text:'¿Justifica los problemas de aprendizaje?', yes:'Z_NO_CONT', no:'E' },
+      E: { type:'q', text:'¿Trastorno profundo del desarrollo?', yes:'F', no:'G' },
+      F: { type:'q', text:'¿Justifica los problemas de aprendizaje?', yes:'Z_NO_CONT', no:'G' },
+      G: { type:'q', text:'¿TDAH? ¿Dislexia?', yes:'H', no:'I' },
+      H: { type:'q', text:'¿Justifica los problemas de aprendizaje?', yes:'Z_NO_CONT', no:'I' },
+      I: { type:'q', text:'¿Es el lenguaje adecuado al nivel de desarrollo?', yes:'K', no:'J' },
+      J: { type:'q', text:'¿Problemas de articulación?', yes:'M', no:'L' },
+      L: { type:'end', title:'Diagnóstico: trastorno de expresión del lenguaje', tone:'success' },
+      M: { type:'q', text:'¿Explica el retraso del lenguaje?', yes:'N', no:'Z_NO_CONT' },
+      N: { type:'q', text:'¿Explica los problemas de aprendizaje?', yes:'O', no:'Z_NO_CONT' },
+      O: { type:'end', title:'Trastorno de la percepción', tone:'success' },
+      K: { type:'q', text:'¿Tiene adecuada coordinación?', yes:'Q', no:'P' },
+      P: { type:'q', text:'¿Justifica los problemas de aprendizaje?', yes:'Z_NO_CONT', no:'Q' },
+      Q: { type:'q', text:'¿Las tareas son adecuadas al desarrollo del niño?', yes:'R', no:'S' },
+      R: { type:'end', title:'Destacar: depresión y/o trastornos de ajuste social o del desarrollo', tone:'warn' },
+      S: { type:'q', text:'¿Desajuste de resultados escolares con otras actividades?', yes:'T', no:'U' },
+      U: { type:'end', title:'Buscar otras causas de retraso del desarrollo', tone:'info' },
+      T: { type:'q', text:'¿Escolarización inadecuada?', yes:'W', no:'V' },
+      V: { type:'end', title:'Buscar otros diagnósticos', tone:'info' },
+      W: { type:'q', text:'Diagnóstico adecuado de bajo rendimiento escolar justifica el trastorno del aprendizaje', yes:'Z_FIN_DIAG', no:'Z_NO_CONT_DIAG' },
+      Z_NO_CONT: { type:'end', title:'No continuar', tone:'danger' },
+      Z_NO_CONT_DIAG: { type:'end', title:'No continuar diagnóstico', tone:'danger' },
+      Z_FIN_DIAG: { type:'end', title:'Trastorno del aprendizaje justificado', tone:'success' }
+    };
+
+    // --- Estado ---
+    let current = 'A';
+    const trail = [{ id:'A', label:'¿Existe déficit sensorial, afectación neurológica?' }];
+
+    // --- Utilidades UI ---
+    const $ = (q) => document.querySelector(q);
+    const breadcrumbs = $('#breadcrumbs');
+    const view = $('#view');
+    const backBtn = $('#backBtn');
+    const restartBtn = $('#restartBtn');
+
+    function renderBreadcrumbs(){
+      breadcrumbs.innerHTML = '';
+      trail.forEach((step, i) => {
+        const wrap = document.createElement('span');
+        wrap.className = 'crumb';
+        const pill = document.createElement('span');
+        pill.className = 'pill';
+        pill.textContent = step.label;
+        wrap.appendChild(pill);
+        if(i < trail.length - 1){
+          const arrow = document.createElement('span');
+          arrow.className = 'arrow';
+          arrow.textContent = '→';
+          wrap.appendChild(arrow);
+        }
+        breadcrumbs.appendChild(wrap);
+      });
+      backBtn.disabled = trail.length <= 1;
+    }
+
+    function nodeToneClass(tone){
+      switch(tone){
+        case 'success': return 'end success';
+        case 'warn': return 'end warn';
+        case 'danger': return 'end danger';
+        case 'info': return 'end info';
+        default: return 'end';
+      }
+    }
+
+    function render(){
+      const node = NODES[current];
+      view.classList.remove('fade-in');
+      void view.offsetWidth; // reflow para reiniciar animación
+      view.classList.add('fade-in');
+
+      if(node.type === 'q'){
+        view.innerHTML = `
+          <div class="card">
+            <h2 class="q">${node.text}</h2>
+            <div class="answers">
+              <button class="yes" id="yesBtn">Sí</button>
+              <button class="no" id="noBtn">No</button>
+            </div>
+          </div>`;
+        $('#yesBtn').onclick = () => answer('yes');
+        $('#noBtn').onclick = () => answer('no');
+      } else {
+        const toneClass = nodeToneClass(node.tone);
+        view.innerHTML = `
+          <div class="card ${toneClass}">
+            <div class="end">
+              <span aria-hidden="true">${node.tone==='success'?'✔️':node.tone==='danger'?'❌':node.tone==='warn'?'⚠️':'ℹ️'}</span>
+              <h2 class="q" style="margin:0">${node.title}</h2>
+            </div>
+            <p class="muted">Fin de la ruta. Puedes reiniciar o retroceder para explorar otras ramas.</p>
+          </div>`;
+      }
+    }
+
+    function answer(ans){
+      const node = NODES[current];
+      const next = ans === 'yes' ? node.yes : node.no;
+      if(!next) return;
+      // Agregar pregunta + respuesta al trail
+      trail.push({ id: next, label: `${node.text} → ${ans === 'yes' ? 'Sí' : 'No'}` });
+      current = next;
+      renderBreadcrumbs();
+      render();
+    }
+
+    backBtn.addEventListener('click', () => {
+      if(trail.length <= 1) return;
+      trail.pop(); // quitar último
+      const prev = trail[trail.length - 1].id;
+      current = prev;
+      renderBreadcrumbs();
+      render();
+    });
+
+    restartBtn.addEventListener('click', () => {
+      current = 'A';
+      trail.splice(0, trail.length, { id:'A', label:'¿Existe déficit sensorial, afectación neurológica?' });
+      renderBreadcrumbs();
+      render();
+    });
+
+    // Inicializar
+    renderBreadcrumbs();
+    render();
+  </script>
+</body>
 </html>
