@@ -173,6 +173,10 @@ type Answer = 'yes' | 'no';
 type TrailStep = {
   id: NodeKey;
   label: string;
+  type: NodeDefinition['type'];
+  question?: string;
+  answer?: Answer;
+  result?: string;
 };
 
 interface BreadcrumbProps {
@@ -197,6 +201,60 @@ function Breadcrumb({ trail }: BreadcrumbProps) {
 interface NodeViewProps {
   nodeId: NodeKey;
   onAnswer: (answer: Answer) => void;
+}
+
+interface TrailDiagramProps {
+  trail: TrailStep[];
+  clientName: string;
+}
+
+function TrailDiagram({ trail, clientName }: TrailDiagramProps) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold">Trazabilidad de la respuesta</h2>
+        <p className="text-sm text-muted-foreground">
+          {clientName
+            ? `Cliente: ${clientName}`
+            : 'Añade el nombre del cliente para personalizar el seguimiento.'}
+        </p>
+      </div>
+
+      <ol className="mt-6 space-y-4">
+        {trail.map((step, index) => (
+          <li key={`${step.id}-${index}`} className="relative pl-6">
+            <span className="absolute left-0 top-2 h-3 w-3 -translate-x-1/2 rounded-full border border-white bg-sky-500 shadow" />
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+              {step.type === 'q' ? (
+                <div className="space-y-2">
+                  <p className="font-medium text-slate-900">{step.question ?? step.label}</p>
+                  {step.answer ? (
+                    <p className="text-sm text-muted-foreground">
+                      Respuesta seleccionada:{' '}
+                      <span
+                        className={
+                          step.answer === 'yes' ? 'font-semibold text-emerald-600' : 'font-semibold text-rose-600'
+                        }
+                      >
+                        {step.answer === 'yes' ? 'Sí' : 'No'}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Esperando respuesta.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="font-medium text-slate-900">{step.result}</p>
+                  <p className="text-sm text-muted-foreground">Estado final alcanzado.</p>
+                </div>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
 }
 
 function NodeView({ nodeId, onAnswer }: NodeViewProps) {
@@ -247,8 +305,14 @@ function NodeView({ nodeId, onAnswer }: NodeViewProps) {
 
 export default function FlujoDiagnosticoAprendizaje() {
   const [current, setCurrent] = useState<NodeKey>('A');
+  const [clientName, setClientName] = useState('');
   const [trail, setTrail] = useState<TrailStep[]>([
-    { id: 'A', label: '¿Existe déficit sensorial, afectación neurológica?' },
+    {
+      id: 'A',
+      label: '¿Existe déficit sensorial, afectación neurológica?',
+      type: 'q',
+      question: '¿Existe déficit sensorial, afectación neurológica?',
+    },
   ]);
 
   const handleAnswer = (answer: Answer) => {
@@ -264,32 +328,75 @@ export default function FlujoDiagnosticoAprendizaje() {
       return;
     }
 
+    const readableAnswer = answer === 'yes' ? 'Sí' : 'No';
+
     setCurrent(nextKey);
-    setTrail((prev) => [
-      ...prev,
-      {
-        id: nextKey,
-        label: (() => {
-          const responseLabel = `${node.text} → ${answer === 'yes' ? 'Sí' : 'No'}`;
-          return nextNode.type === 'end'
-            ? `${responseLabel} → ${nextNode.title}`
-            : responseLabel;
-        })(),
-      },
-    ]);
+    setTrail((prev) => {
+      const updatedTrail = [...prev];
+      const lastIndex = updatedTrail.length - 1;
+      const lastStep = updatedTrail[lastIndex];
+
+      if (lastStep) {
+        updatedTrail[lastIndex] = {
+          ...lastStep,
+          answer,
+          label: `${lastStep.question ?? lastStep.label} → ${readableAnswer}`,
+        };
+      }
+
+      if (nextNode.type === 'q') {
+        updatedTrail.push({
+          id: nextKey,
+          label: nextNode.text,
+          type: 'q',
+          question: nextNode.text,
+        });
+      } else {
+        updatedTrail.push({
+          id: nextKey,
+          label: `Resultado → ${nextNode.title}`,
+          type: 'end',
+          result: nextNode.title,
+        });
+      }
+
+      return updatedTrail;
+    });
   };
 
   const restart = () => {
     setCurrent('A');
-    setTrail([{ id: 'A', label: '¿Existe déficit sensorial, afectación neurológica?' }]);
+    setTrail([
+      {
+        id: 'A',
+        label: '¿Existe déficit sensorial, afectación neurológica?',
+        type: 'q',
+        question: '¿Existe déficit sensorial, afectación neurológica?',
+      },
+    ]);
   };
 
   const back = () => {
     if (trail.length <= 1) {
       return;
     }
+
     const newTrail = trail.slice(0, -1);
-    const previous = newTrail[newTrail.length - 1];
+    const previousIndex = newTrail.length - 1;
+    const previous = newTrail[previousIndex];
+
+    if (!previous) {
+      return;
+    }
+
+    if (previous.type === 'q') {
+      newTrail[previousIndex] = {
+        ...previous,
+        answer: undefined,
+        label: previous.question ?? previous.label,
+      };
+    }
+
     setTrail(newTrail);
     setCurrent(previous.id);
   };
@@ -308,6 +415,20 @@ export default function FlujoDiagnosticoAprendizaje() {
         </div>
       </div>
 
+      <div className="max-w-md space-y-2">
+        <label htmlFor="client-name" className="text-sm font-medium text-slate-700">
+          Nombre del cliente
+        </label>
+        <input
+          id="client-name"
+          type="text"
+          value={clientName}
+          onChange={(event) => setClientName(event.target.value)}
+          placeholder="Ingresa el nombre del cliente"
+          className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+        />
+      </div>
+
       <Breadcrumb trail={trail} />
 
       <NodeView nodeId={current} onAnswer={handleAnswer} />
@@ -318,6 +439,12 @@ export default function FlujoDiagnosticoAprendizaje() {
           <strong>Sí / No</strong> para avanzar.
         </p>
       </div>
+
+      <TrailDiagram trail={trail} clientName={clientName} />
+
+      <footer className="pt-4 text-center text-xs text-muted-foreground">
+        Derechos reservados Aparicio Armando Capcha Chavez
+      </footer>
     </div>
   );
 }
