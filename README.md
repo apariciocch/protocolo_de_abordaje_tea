@@ -1,34 +1,28 @@
-# protocolo_de_abordaje_tea
+# Protocolo de abordaje de dificultades de aprendizaje
 
-Aplicación web interactiva que reproduce el protocolo de abordaje de los trastornos de aprendizaje mediante un flujo de preguntas y decisiones. Está construida con React, Vite y Tailwind CSS.
+Esta es una versión completamente autónoma del flujo diagnóstico
+original, implementada únicamente con **HTML, CSS y JavaScript** sin
+frameworks ni dependencias externas.
 
-## Versión sin frameworks
+## Cómo usarla
 
-Para una versión completamente autónoma en HTML + JavaScript + CSS (sin dependencias externas), abre el archivo [`standalone/flujo-diagnostico-sin-frameworks.html`](standalone/flujo-diagnostico-sin-frameworks.html) directamente en el navegador. Replica la misma lógica del flujo sin necesidad de Node.js ni del bundler.
+1. Descarga o clona este repositorio.
+2. Abre el archivo [`index.html`](index.html) directamente en tu
+   navegador favorito.
+3. Responde **Sí** o **No** a cada pregunta para avanzar por el árbol de
+decisiones y llegar a un resultado.
 
-## Requisitos previos
+> No es necesario instalar Node.js ni ejecutar comandos de
+> compilación. Todo el comportamiento está incorporado en el propio
+> archivo `index.html`.
 
-- Node.js 18 o superior
-- npm 9 o superior
+## Estructura
 
-## Instalación
-
-```bash
-npm install
 ```
-
-## Scripts disponibles
-
-- `npm run dev`: inicia el servidor de desarrollo en `http://localhost:5173`.
-- `npm run build`: genera la versión de producción.
-- `npm run preview`: sirve la compilación de producción de forma local.
-- `npm run lint`: ejecuta ESLint sobre el código fuente.
-
-## Estructura principal
-
-- `src/components/FlujoDiagnosticoAprendizaje.tsx`: componente principal con la lógica del flujo.
-- `src/components/ui`: componentes reutilizables de interfaz (`Button`, `Card`).
-- `src/index.css`: estilos base y configuración de Tailwind CSS.
+├── index.html   # Página principal con el flujo interactivo
+├── README.md    # Esta guía rápida
+└── .gitignore   # Archivos a excluir del control de versiones
+```
 
 ## Licencia
 
