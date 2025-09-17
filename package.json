@@ -1,0 +1,13 @@
+{
+  "name": "protocolo-de-abordaje-tea",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Flujo diagnóstico de dificultades de aprendizaje con HTML, CSS y JavaScript puro.",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo \"Static site - nothing to build\""
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
