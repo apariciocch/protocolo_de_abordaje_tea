@@ -1,8 +1,7 @@
 # Protocolo de abordaje de dificultades de aprendizaje
 
 Esta es una versión completamente autónoma del flujo diagnóstico
-original, implementada únicamente con **HTML, CSS y JavaScript** sin
-frameworks ni dependencias externas.
+
 
 ## Cómo usarla
 
@@ -21,7 +20,6 @@ frameworks ni dependencias externas.
 ```
 ├── index.html    # Página principal con el marcado y estilos
 ├── main.js       # Lógica del flujo de preguntas y resultados
-├── package.json  # Scripts informativos (no se requiere instalar nada)
 └── README.md     # Esta guía rápida
 ```
 
