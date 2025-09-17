@@ -486,66 +486,70 @@ export default function FlujoDiagnosticoAprendizaje() {
     window.print();
   };
 
+  const currentYear = new Date().getFullYear();
+
   return (
     <div
       id="diagnostico-root"
-      className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 p-6 md:p-10 print-container"
+      className="mx-auto flex min-h-screen max-w-6xl flex-col p-6 md:p-10 print-container"
     >
-      <header className="flex flex-col gap-4 border-b border-slate-200 pb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Flujo diagnóstico de dificultades de aprendizaje
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Sigue cada pregunta y registra las respuestas para obtener un reporte descargable.
+      <main className="flex flex-1 flex-col gap-8">
+        <header className="flex flex-col gap-4 border-b border-slate-200 pb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Flujo diagnóstico de dificultades de aprendizaje
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sigue cada pregunta y registra las respuestas para obtener un reporte descargable.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 print-hidden">
+            <Button variant="outline" onClick={back} disabled={trail.length <= 1}>
+              Retroceder
+            </Button>
+            <Button onClick={restart} className="gap-2">
+              <RotateCw className="h-4 w-4" /> Reiniciar
+            </Button>
+            <Button onClick={handleDownloadReport} className="gap-2">
+              Descargar reporte (PDF)
+            </Button>
+          </div>
+        </header>
+
+        <section className="max-w-xl space-y-2">
+          <label htmlFor="client-name" className="text-sm font-medium text-slate-700">
+            Nombre del cliente o paciente
+          </label>
+          <input
+            id="client-name"
+            type="text"
+            value={clientName}
+            onChange={(event) => setClientName(event.target.value)}
+            placeholder="Ingresa el nombre del cliente"
+            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+          />
+          <p className="text-xs text-muted-foreground">
+            El nombre se incluye automáticamente en el reporte descargable.
           </p>
-        </div>
+        </section>
 
-        <div className="flex flex-wrap items-center gap-2 print-hidden">
-          <Button variant="outline" onClick={back} disabled={trail.length <= 1}>
-            Retroceder
-          </Button>
-          <Button onClick={restart} className="gap-2">
-            <RotateCw className="h-4 w-4" /> Reiniciar
-          </Button>
-          <Button onClick={handleDownloadReport} className="gap-2">
-            Descargar reporte (PDF)
-          </Button>
-        </div>
-      </header>
+        <Breadcrumb trail={trail} />
 
-      <section className="max-w-xl space-y-2">
-        <label htmlFor="client-name" className="text-sm font-medium text-slate-700">
-          Nombre del cliente o paciente
-        </label>
-        <input
-          id="client-name"
-          type="text"
-          value={clientName}
-          onChange={(event) => setClientName(event.target.value)}
-          placeholder="Ingresa el nombre del cliente"
-          className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
-        />
-        <p className="text-xs text-muted-foreground">
-          El nombre se incluye automáticamente en el reporte descargable.
+        <NodeView nodeId={current} onAnswer={handleAnswer} />
+
+        <p className="text-sm text-muted-foreground">
+          Esta herramienta guía paso a paso replicando la lógica del diagrama original. Responde{' '}
+          <strong>Sí / No</strong> para avanzar y genera el resumen con un clic.
         </p>
-      </section>
 
-      <Breadcrumb trail={trail} />
+        <TrailDiagram trail={trail} clientName={clientName} />
 
-      <NodeView nodeId={current} onAnswer={handleAnswer} />
+        <PrintableReport trail={trail} clientName={clientName} />
+      </main>
 
-      <p className="text-sm text-muted-foreground">
-        Esta herramienta guía paso a paso replicando la lógica del diagrama original. Responde{' '}
-        <strong>Sí / No</strong> para avanzar y genera el resumen con un clic.
-      </p>
-
-      <TrailDiagram trail={trail} clientName={clientName} />
-
-      <PrintableReport trail={trail} clientName={clientName} />
-
-      <footer className="mt-auto border-t border-slate-200 pt-4 text-center text-xs text-muted-foreground">
-        derechos reservados Aparicio Capcha Chavez
+      <footer className="mt-10 border-t border-slate-300 pt-6 text-center text-sm text-slate-600 print-hidden">
+        © {currentYear} Aparicio Capcha Chavez. Todos los derechos reservados.
       </footer>
     </div>
   );
