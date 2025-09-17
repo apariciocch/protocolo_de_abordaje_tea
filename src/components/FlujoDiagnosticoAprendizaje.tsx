@@ -545,7 +545,7 @@ export default function FlujoDiagnosticoAprendizaje() {
       <PrintableReport trail={trail} clientName={clientName} />
 
       <footer className="mt-auto border-t border-slate-200 pt-4 text-center text-xs text-muted-foreground">
-        Derechos reservados Aparicio Armando Capcha Chavez
+        derechos reservados Aparicio Capcha Chavez
       </footer>
     </div>
   );
