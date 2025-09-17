@@ -8,20 +8,21 @@ frameworks ni dependencias externas.
 
 1. Descarga o clona este repositorio.
 2. Abre el archivo [`index.html`](index.html) directamente en tu
-   navegador favorito.
+   navegador favorito (no necesitas ningún servidor).
 3. Responde **Sí** o **No** a cada pregunta para avanzar por el árbol de
-decisiones y llegar a un resultado.
+   decisiones y llegar a un resultado.
 
-> No es necesario instalar Node.js ni ejecutar comandos de
-> compilación. Todo el comportamiento está incorporado en el propio
-> archivo `index.html`.
+> No es necesario instalar Node.js ni ejecutar comandos de compilación.
+> Toda la lógica está en el archivo [`main.js`](main.js), que se carga
+> automáticamente desde `index.html`.
 
 ## Estructura
 
 ```
-├── index.html   # Página principal con el flujo interactivo
-├── README.md    # Esta guía rápida
-└── .gitignore   # Archivos a excluir del control de versiones
+├── index.html    # Página principal con el marcado y estilos
+├── main.js       # Lógica del flujo de preguntas y resultados
+├── package.json  # Scripts informativos (no se requiere instalar nada)
+└── README.md     # Esta guía rápida
 ```
 
 ## Licencia

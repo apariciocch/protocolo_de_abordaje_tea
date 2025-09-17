@@ -4,10 +4,7 @@
   "private": true,
   "description": "Flujo diagnóstico de dificultades de aprendizaje con HTML, CSS y JavaScript puro.",
   "scripts": {
-    "start": "node server.js",
-    "build": "echo \"Static site - nothing to build\""
-  },
-  "engines": {
-    "node": ">=18"
+    "start": "echo \"Aplicación estática: abre index.html en tu navegador.\"",
+    "build": "echo \"Aplicación estática: no se requiere compilación.\""
   }
 }
