@@ -36,3 +36,30 @@
     color: hsl(var(--muted-foreground));
   }
 }
+
+.print-visible {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  #diagnostico-root {
+    max-width: none !important;
+    padding: 24px !important;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  .print-visible {
+    display: block !important;
+  }
+
+  .print-container {
+    box-shadow: none !important;
+  }
+}
