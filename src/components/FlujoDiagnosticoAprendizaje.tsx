@@ -210,9 +210,9 @@ interface TrailDiagramProps {
 
 function TrailDiagram({ trail, clientName }: TrailDiagramProps) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold">Trazabilidad de la respuesta</h2>
+        <h2 className="text-lg font-semibold">Gráfico de trazabilidad</h2>
         <p className="text-sm text-muted-foreground">
           {clientName
             ? `Cliente: ${clientName}`
@@ -220,40 +220,117 @@ function TrailDiagram({ trail, clientName }: TrailDiagramProps) {
         </p>
       </div>
 
-      <ol className="mt-6 space-y-4">
+      <div className="mt-8 flex flex-col items-center gap-6">
+        <div className="rounded-lg border-2 border-slate-200 bg-slate-50 px-6 py-3 text-center font-semibold text-slate-700 shadow-sm">
+          Inicio
+        </div>
+
         {trail.map((step, index) => (
-          <li key={`${step.id}-${index}`} className="relative pl-6">
-            <span className="absolute left-0 top-2 h-3 w-3 -translate-x-1/2 rounded-full border border-white bg-sky-500 shadow" />
-            <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-              {step.type === 'q' ? (
-                <div className="space-y-2">
-                  <p className="font-medium text-slate-900">{step.question ?? step.label}</p>
-                  {step.answer ? (
-                    <p className="text-sm text-muted-foreground">
-                      Respuesta seleccionada:{' '}
-                      <span
-                        className={
-                          step.answer === 'yes' ? 'font-semibold text-emerald-600' : 'font-semibold text-rose-600'
-                        }
-                      >
-                        {step.answer === 'yes' ? 'Sí' : 'No'}
-                      </span>
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Esperando respuesta.</p>
-                  )}
+          <div key={`${step.id}-${index}`} className="flex flex-col items-center gap-4">
+            <div className="h-6 w-px bg-slate-200" aria-hidden />
+
+            {step.type === 'q' ? (
+              <div className="flex flex-col items-center gap-4">
+                <div className="rounded-lg border-2 border-sky-200 bg-sky-50 px-6 py-4 text-center shadow-sm">
+                  <p className="text-base font-semibold text-slate-900">
+                    {step.question ?? step.label}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {step.answer
+                      ? `Respuesta seleccionada: ${step.answer === 'yes' ? 'Sí' : 'No'}`
+                      : 'Respuesta pendiente.'}
+                  </p>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="font-medium text-slate-900">{step.result}</p>
-                  <p className="text-sm text-muted-foreground">Estado final alcanzado.</p>
+
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <div
+                    className={`min-w-[120px] rounded-lg border-2 px-4 py-2 text-sm font-medium transition ${
+                      step.answer === 'yes'
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 shadow-sm'
+                        : 'border-slate-200 bg-white text-slate-500'
+                    }`}
+                  >
+                    Opción Sí
+                  </div>
+                  <div
+                    className={`min-w-[120px] rounded-lg border-2 px-4 py-2 text-sm font-medium transition ${
+                      step.answer === 'no'
+                        ? 'border-rose-300 bg-rose-50 text-rose-700 shadow-sm'
+                        : 'border-slate-200 bg-white text-slate-500'
+                    }`}
+                  >
+                    Opción No
+                  </div>
                 </div>
-              )}
-            </div>
-          </li>
+              </div>
+            ) : (
+              <div className="rounded-lg border-2 border-emerald-300 bg-emerald-50 px-6 py-4 text-center shadow-sm">
+                <p className="text-base font-semibold text-emerald-800">{step.result}</p>
+                <p className="mt-2 text-sm text-emerald-700">Estado final alcanzado.</p>
+              </div>
+            )}
+
+            {index === trail.length - 1 ? null : <div className="h-6 w-px bg-slate-200" aria-hidden />}
+          </div>
         ))}
-      </ol>
-    </div>
+      </div>
+    </section>
+  );
+}
+
+function PrintableReport({ trail, clientName }: TrailDiagramProps) {
+  const now = new Date();
+  const formattedDate = new Intl.DateTimeFormat('es-ES', {
+    dateStyle: 'long',
+  }).format(now);
+  const formattedTime = new Intl.DateTimeFormat('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(now);
+
+  return (
+    <section className="print-visible hidden rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 className="text-lg font-semibold text-slate-900">Reporte del flujo diagnóstico</h2>
+      <p className="text-sm text-muted-foreground">
+        Reporte generado el {formattedDate} a las {formattedTime}.
+      </p>
+
+      <div className="mt-4 space-y-4 text-sm text-slate-700">
+        <p>
+          <span className="font-semibold text-slate-900">Cliente:</span>{' '}
+          {clientName || 'No especificado'}
+        </p>
+
+        <ol className="list-decimal space-y-3 pl-5">
+          {trail.map((step, index) => (
+            <li key={`${step.id}-${index}`} className="space-y-1">
+              {step.type === 'q' ? (
+                <>
+                  <p className="font-medium text-slate-900">
+                    Paso {index + 1}: {step.question ?? step.label}
+                  </p>
+                  <p>
+                    Respuesta:{' '}
+                    <span className="font-medium text-slate-900">
+                      {step.answer ? (step.answer === 'yes' ? 'Sí' : 'No') : 'Pendiente'}
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium text-slate-900">Resultado final</p>
+                  <p>{step.result}</p>
+                </>
+              )}
+            </li>
+          ))}
+        </ol>
+
+        <p className="text-xs text-muted-foreground">
+          Este documento se genera automáticamente con las respuestas registradas en la herramienta digital.
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -401,23 +478,45 @@ export default function FlujoDiagnosticoAprendizaje() {
     setCurrent(previous.id);
   };
 
+  const handleDownloadReport = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.print();
+  };
+
   return (
-    <div className="mx-auto space-y-6 p-6 md:p-10">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Flujo diagnóstico de dificultades de aprendizaje</h1>
-        <div className="flex gap-2">
+    <div
+      id="diagnostico-root"
+      className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 p-6 md:p-10 print-container"
+    >
+      <header className="flex flex-col gap-4 border-b border-slate-200 pb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Flujo diagnóstico de dificultades de aprendizaje
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Sigue cada pregunta y registra las respuestas para obtener un reporte descargable.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 print-hidden">
           <Button variant="outline" onClick={back} disabled={trail.length <= 1}>
             Retroceder
           </Button>
           <Button onClick={restart} className="gap-2">
             <RotateCw className="h-4 w-4" /> Reiniciar
           </Button>
+          <Button onClick={handleDownloadReport} className="gap-2">
+            Descargar reporte (PDF)
+          </Button>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-md space-y-2">
+      <section className="max-w-xl space-y-2">
         <label htmlFor="client-name" className="text-sm font-medium text-slate-700">
-          Nombre del cliente
+          Nombre del cliente o paciente
         </label>
         <input
           id="client-name"
@@ -427,22 +526,25 @@ export default function FlujoDiagnosticoAprendizaje() {
           placeholder="Ingresa el nombre del cliente"
           className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
         />
-      </div>
+        <p className="text-xs text-muted-foreground">
+          El nombre se incluye automáticamente en el reporte descargable.
+        </p>
+      </section>
 
       <Breadcrumb trail={trail} />
 
       <NodeView nodeId={current} onAnswer={handleAnswer} />
 
-      <div className="pt-2 text-sm text-muted-foreground">
-        <p>
-          Esta herramienta guía paso a paso replicando la lógica del diagrama original. Responde{' '}
-          <strong>Sí / No</strong> para avanzar.
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Esta herramienta guía paso a paso replicando la lógica del diagrama original. Responde{' '}
+        <strong>Sí / No</strong> para avanzar y genera el resumen con un clic.
+      </p>
 
       <TrailDiagram trail={trail} clientName={clientName} />
 
-      <footer className="pt-4 text-center text-xs text-muted-foreground">
+      <PrintableReport trail={trail} clientName={clientName} />
+
+      <footer className="mt-auto border-t border-slate-200 pt-4 text-center text-xs text-muted-foreground">
         Derechos reservados Aparicio Armando Capcha Chavez
       </footer>
     </div>
